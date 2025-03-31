@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор ML модели</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .input-field {
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+            border-color: #3b82f6;
+        }
+        .result-box {
+            transition: all 0.5s ease;
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+        }
+        .result-box.show {
+            opacity: 1;
+            height: auto;
+        }
+        .probability-meter {
+            height: 30px;
+            background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #10b981 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-indigo-800 mb-2">
+                <i class="fas fa-calculator mr-2"></i>Калькулятор репродуктивного потенциала
+            </h1>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                Введите параметры пациента для расчета вероятности успеха с помощью ML модели
+            </p>
+        </div>
+
+        <!-- Form section -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <!-- Buttons row -->
+            <div class="flex flex-wrap gap-3 mb-6">
+                <button id="calculate-btn" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-300">
+                    <i class="fas fa-calculator mr-2"></i>Рассчитать вероятность
+                </button>
+                <button id="fill-average-btn" class="px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-300">
+                    <i class="fas fa-user-md mr-2"></i>Среднестатистический пациент
+                </button>
+                <button id="clear-btn" class="px-6 py-2 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-300">
+                    <i class="fas fa-trash-alt mr-2"></i>Очистить форму
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- General info -->
+                <div>
+                    <h2 class="text-xl font-semibold text-indigo-700 mb-4 pb-2 border-b border-indigo-100">
+                        <i class="fas fa-user-circle mr-2"></i>Общая информация
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Возраст</label>
+                            <input type="number" id="Возраст" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ИМТ</label>
+                            <input type="number" id="ИМТ" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">АМГ, нг/мл</label>
+                            <input type="number" id="АМГ, нг/мл" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ФСГ, мМЕ/л</label>
+                            <input type="number" id="ФСГ, мМЕ/л" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ЛГ, мМЕ/мл</label>
+                            <input type="number" id="ЛГ, мМЕ/мл" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clinical parameters -->
+                <div>
+                    <h2 class="text-xl font-semibold text-indigo-7o0 mb-4 pb-2 border-b border-indigo-100">
+                        <i class="fas fa-clipboard-check mr-2"></i>Клинические параметры
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Толщина эндометрия</label>
+                            <input type="number" id="Толщина эндометрия" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Количество антральных фолликулов</label>
+                            <input type="number" id="Количество антральных фолликулов" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Продолжительность бесплодия</label>
+                            <input type="number" id="Продолжительность бесплодия" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Количество беременностей в анамнезе</label>
+                            <input type="number" id="Количество беременностей в анамнезе" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Количество протоколов ВРТ</label>
+                            <input type="number" id="Количество протоколов ВРТ" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stimulation and IVF -->
+                <div>
+                    <h2 class="text-xl font-semibold text-indigo-700 mb-4 pb-2 border-b border-indigo-100">
+                        <i class="fas fa-flask mr-2"></i>Стимуляция и ВРТ
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Количество полученных ооцитов</label>
+                            <input type="number" id="Количество полученных ооцитов" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">суммарная доза препарата гонадотропина, МЕ</label>
+                            <input type="number" id="суммарная доза препарата гонадотропина, МЕ" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">продолжительность стимуляции</label>
+                            <input type="number" id="продолжительность стимуляции" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Антагонисты, день</label>
+                            <input type="number" id="Антагонисты, день" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Препарат ФСЖ, МЕ</label>
+                            <input type="number" id="Препарат ФСГ, МЕ" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Additional parameters column 1 -->
+                <div>
+                    <h2 class="text-xl font-semibold text-indigo-700 mb-4 pb-2 border-b border-indigo-100">
+                        <i class="fas fa-vial mr-2"></i>Лабораторные параметры
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">эстрадиол, пг/мл</label>
+                            <input type="number" id="эстрадиол, пг/мл" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">пролактин, мМЕ/л</label>
+                            <input type="number" id="пролактин, мМЕ/л" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">АЧТВ</label>
+                            <input type="number" id="АЧТВ" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Фибриноген</label>
+                            <input type="number" id="Фибриноген" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Протромбиновое время</label>
+                            <input type="number" id="Протромбиновое время" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional parameters column 2 -->
+                <div>
+                    <h2 class="text-xl font-semibold text-indigo-700 mb-4 pb-2 border-b border-indigo-100">
+                        <i class="fas fa-male mr-2"></i>Спермограмма
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Количество сперматозоидов в 1 мл, млн</label>
+                            <input type="number" id="Количество сперматозоидов в 1 мл, млн" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Активноподвижные %</label>
+                            <input type="number" id="Активноподвижные %" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Малоподвижные %</label>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Неподвижные %</label>
+                            <input type="number" id="Неподвижные %" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Нормальные сперматозоиды %</label>
+                            <input type="number" id="Нормальные сперматозоиды %", class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pathologies and diseases -->
+                <div>
+                    <h2 class="text-xl font-semibold text-indigo-700 mb-4 pb-2 border-b border-indigo-100">
+                        <i class="fas fa-book-medical mr-2"></i>Патологии и заболевания
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Хронический эндометрит</label>
+                            <select id="Хронический эндометрит" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                <option value="0">Нет</option>
+                                <option value="1">Да</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Синдром поликистозных яичников</label>
+                            <select id="Синдром поликистозных яичников" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                <option value="0">Нет</option>
+                                <option value="1">Да</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Эндометриоз</label>
+                            <select id="Эндометриоз" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                <option value="0">Нет</option>
+                                <option value="1">Да</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Миома матки</label>
+                            <select id="Миома матки" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                <option value="0">Нет</option>
+                                <option value="1">Да</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Хронический сальпингоофорит</label>
+                            <select id="Хронический сальпингоофорит" class="input-field w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                <option value="0">Нет</option>
+                                <option value="1">Да</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results section -->
+        <div id="result-box" class="result-box bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-2xl font-bold text-indigo-800 mb-4 flex items-center">
+                <i class="fas fa-chart-line mr-3"></i>Результаты расчета
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Probability result -->
+                <div class="bg-indigo-50 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-indigo-700 mb-2">Вероятность успеха</h3>
+                    <div class="text-4xl font-bold text-indigo-800 mb-4">
+                        <span id="probability-value">0</span><span class="text-2xl">%</span>
+                    </div>
+                    
+                    <!-- Probability meter -->
+                    <div class="mb-4">
+                        <div class="probability-meter rounded-full overflow-hidden mb-2">
+                            <div id="probability-meter-indicator" class="h-full bg-blue-500 w-0"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-600">
+                            <span>0%</span>
+                            <span>50%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                            <span class="text-sm">> 70% - Высокий шанс успеха</span>
+                        </div>
+                        <div class="flex items-center mb-2">
+                            <div class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                            <span class="text-sm">30% - 70% - Средний шанс успеха</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                            <span class="text-sm">< 30% - Низкий шанс успеха</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Key factors -->
+                <div>
+                    <h3 class="text-lg font-semibold text-indigo-700 mb-3">Основные факторы влияния</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-medium">Количество ооцитов</span>
+                                <span id="oocytes-impact" class="font-semibold">+0.0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="oocytes-bar" class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-medium">Толщина эндометрия</span>
+                                <span id="endometrium-impact" class="font-semibold">+0.0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="endometrium-bar" class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-medium">Продолжительность бесплодия</span>
+                                <span id="infertility-impact" class="font-semibold">-0.0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="infertility-bar" class="bg-red-500 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-medium">Количество антральных фолликулов</span>
+                                <span id="follicles-impact" class="font-semibold">+0.0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="follicles-bar" class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Raw score -->
+                    <div class="mt-6 bg-gray-100 p-3 rounded-lg">
+                        <div class="text-sm text-gray-600 mb-1">Сырой score (до логистической функции):</div>
+                        <div class="font-mono text-gray-800" id="raw-score-value">0.0000</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Detailed parameters -->
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold text-indigo-700 mb-3">
+                    <button id="toggle-details" class="text-indigo-600 hover:text-indigo-800 focus:outline-none">
+                        <i class="fas fa-chevron-down mr-2"></i>Подробные параметры и их вклад
+                    </button>
+                </h3>
+                <div id="details-container" class="hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Параметр</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Значение</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Коэффициент</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Вклад в Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="details-table" class="bg-white divide-y divide-gray-200">
+                                <!-- Will be filled by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Model coefficients and intercept
+        const intercept = 0.00065637;
+        const coefficients = {
+            'Хронический эндометрит': -0.13067056566156474,
+            'суммарная доза препарата гонадотропина, МЕ': -0.0009328275960096832,
+            'Количество полученных ооцитов': 0.13383318622742188,
+            'АМГ, нг/мл': -0.11240380984723364,
+            'АЧТВ': 0.019752009405181813,
+            'Толщина эндометрия': 0.1586844820540033,
+            'пролактин, мМЕ/л': -0.0029849023176446183,
+            'Количество антральных фолликулов': 0.14739318788866806,
+            'Фибриноген': 0.012668845800562132,
+            'Малоподвижные %': -0.03742122884651153,
+            'эстрадиол, пг/мл': -0.0025286334679203233,
+            'Продолжительность бесплодия': -0.254491107523868,
+            'Препарат ФСГ, МЕ': -0.0006731451157481255,
+            'ФСГ, мМЕ/л': -0.025792656665531478,
+            'Протромбиновое время': -0.021152059390377207,
+            'Хронический сальпингоофорит': -0.01340715400110008,
+            'Возраст': 0.10865096464989152,
+            'Активноподвижные %': -0.048429864585734395,
+            'Нормальные сперматозоиды %': 0.030800879358129037,
+            'продолжительность стимуляции': 0.07059465013217944,
+            'Количество протоколов ВРТ': -0.0907987203011743,
+            'Количество сперматозоидов в 1 мл, млн': 0.0049146476985018565,
+            'Неподвижные %': -0.03480949058377521,
+            'Синдром поликистозных яичников': -0.0156013806330437,
+            'Количество беременностей в анамнезе': -0.08629882113758175,
+            'Эндометриоз': -0.020649800381830324,
+            'Миома матки': -0.014081283369131996,
+            'ИМТ': 0.010582329562029117,
+            'ЛГ, мМЕ/мл': 0.0368103106559079,
+            'Антагонисты, день': 0.14784798442902347
+        };
+
+        // Average patient values
+        const averagePatient = {
+            'Возраст': 34.340101522828284,
+            'ИМТ': 23.76492385786802,
+            'АМГ, нг/мл': 3.3453756345177665,
+            'ФСГ, мМЕ/л': 7.170456852791878,
+            'ЛГ, мМЕ/мл': 5.714923857868021,
+            'Толщина эндометрия': 9.00507614213198,
+            'Количество антральных фолликулов': 5.431472081218274,
+            'Продолжительность бесплодия': 6.6040609137070705,
+            'Количество беременностей в анамнезе': 1.1624365482233503,
+            'Количество протоколов ВРТ': 2.781725888323232,
+            'Количество полученных ооцитов': 7.8578680203045685,
+            'суммарная доза препарата гонадотропина, МЕ': 2309.2105263157896,
+            'продолжительность стимуляции': 11.052631578947368,
+            'Антагонисты, день': 5.2180451127819545,
+            'Препарат ФСГ, МЕ': 1468.609022556391,
+            'эстрадиол, пг/мл': 139.1743147208122,
+            'пролактин, мМЕ/л': 265.98512690355335,
+            'АЧТВ': 29.22959390862944,
+            'Фибриноген': 2.6848730964467005,
+            'Протромбиновое время': 15.08527918781726,
+            'Количество сперматозоидов в 1 мл, млн': 82.23857868020305,
+            'Активноподвижные %': 22.76827411167513,
+            'Малоподвижные %': 26.767766497461928,
+            'Неподвижные %': 32.333299492385784,
+            'Нормальные сперматозоиды %': 29.069035532994924,
+            'Хронический эндометрит': 0.47715736040609136,
+            'Синдром поликистозных яичников': 0.06598984771573604,
+            'Эндометриоз': 0.17258883248730963,
+            'Миома матки': 0.18274111675126903,
+            'Хронический сальпингоофорит': 0.39593908629441626
+        };
+
+        // Function to calculate probability using logistic function
+        function logisticFunction(x) {
+            return 1 / (1 + Math.exp(-x));
+        }
+
+        // Function to scale impact to percentage change in probability
+        function impactToPercentage(impact, currentProbability) {
+            // Calculate new probability if we added this impact
+            const newProbability = logisticFunction(Math.log(currentProbability / (1 - currentProbability)) + impact);
+            return (newProbability - currentProbability) * 100;
+        }
+
+        // Fill form with average patient values
+        document.getElementById('fill-average-btn').addEventListener('click', function() {
+            for (const param in averagePatient) {
+                const element = document.getElementById(param);
+                if (element) {
+                    // For select inputs (binary parameters)
+                    if (element.tagName === 'SELECT') {
+                        const value = Math.round(averagePatient[param]); // Round to 0 or 1
+                        element.value = value;
+                    } 
+                    // For number inputs
+                    else if (element.type === 'number') {
+                        element.value = parseFloat(averagePatient[param]).toFixed(2);
+                    }
+                }
+            }
+            
+            // Show toast notification
+            showToast('Поля заполнены значениями среднестатистического пациента', 'success');
+        });
+
+        // Clear form button
+        document.getElementById('clear-btn').addEventListener('click', function() {
+            const inputs = document.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                if (input.type === 'number') {
+                    input.value = '';
+                } else if (input.tagName === 'SELECT') {
+                    input.value = '0'; // Default to "No" for selects
+                }
+            });
+            
+            // Hide results if shown
+            document.getElementById('result-box').classList.remove('show');
+            
+            // Show toast notification
+            showToast('Форма очищена', 'info');
+        });
+
+        // Toggle details visibility
+        document.getElementById('toggle-details').addEventListener('click', function() {
+            const detailsContainer = document.getElementById('details-container');
+            const icon = this.querySelector('i');
+            
+            if (detailsContainer.classList.contains('hidden')) {
+                detailsContainer.classList.remove('hidden');
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                detailsContainer.classList.add('hidden');
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        });
+
+        // Calculate button click handler
+        document.getElementById('calculate-btn').addEventListener('click', function() {
+            // Calculate raw score (x)
+            let rawScore = intercept;
+            const inputValues = {};
+            const impacts = {};
+            
+            // Collect all input values
+            for (const param in coefficients) {
+                const element = document.getElementById(param);
+                if (element) {
+                    let value = element.value;
+                    
+                    // Handle select inputs (binary 0 or 1)
+                    if (element.tagName === 'SELECT') {
+                        value = parseInt(value);
+                        if (isNaN(value)) value = 0;
+                    } else if (value === '') {
+                        value = 0;
+                    } else {
+                        value = parseFloat(value);
+                        if (isNaN(value)) value = 0;
+                    }
+                    
+                    inputValues[param] = value;
+                    impacts[param] = value * coefficients[param];
+                    rawScore += impacts[param];
+                }
+            }
+            
+            // Calculate probability using logistic function (1 / (1 + exp(-x)))
+            const probability = logisticFunction(rawScore);
+            const probabilityPercent = (probability * 100).toFixed(1);
+            
+            // Display results
+            document.getElementById('probability-value').textContent = probabilityPercent;
+            document.getElementById('raw-score-value').textContent = rawScore.toFixed(6);
+            
+            // Update probability meter
+            const meter = document.getElementById('probability-meter-indicator');
+            meter.style.width = `${probabilityPercent}%`;
+            
+            // Set meter color based on probability
+            if (probability > 0.7) {
+                meter.className = 'h-full bg-green-500';
+            } else if (probability > 0.3) {
+                meter.className = 'h-full bg-yellow-500';
+            } else {
+                meter.className = 'h-full bg-red-500';
+            }
+            
+            // Calculate and show impacts of key parameters
+            const oocytesImpact = impactToPercentage(impacts['Количество полученных ооцитов'], probability);
+            const endometriumImpact = impactToPercentage(impacts['Толщина эндометрия'], probability);
+            const infertilityImpact = impactToPercentage(impacts['Продолжительность бесплодия'], probability);
+            const folliclesImpact = impactToPercentage(impacts['Количество антральных фолликулов'], probability);
+            
+            document.getElementById('oocytes-impact').textContent = `${oocytesImpact >= 0 ? '+' : ''}${oocytesImpact.toFixed(1)}%`;
+            document.getElementById('endometrium-impact').textContent = `${endometriumImpact >= 0 ? '+' : ''}${endometriumImpact.toFixed(1)}%`;
+            document.getElementById('infertility-impact').textContent = `${infertilityImpact.toFixed(1)}%`;
+            document.getElementById('follicles-impact').textContent = `${folliclesImpact >= 0 ? '+' : ''}${folliclesImpact.toFixed(1)}%`;
+            
+            // Update impact bars visualization
+            updateImpactBar('oocytes-bar', oocytesImpact, 15);
+            updateImpactBar('endometrium-bar', endometriumImpact, 15);
+            updateImpactBar('infertility-bar', infertilityImpact, -15);
+            updateImpactBar('follicles-bar', folliclesImpact, 15);
+            
+            // Fill details table
+            const detailsTable = document.getElementById('details-table');
+            detailsTable.innerHTML = '';
+            
+            // Sort parameters by absolute impact value (descending)
+            const sortedParams = Object.keys(impacts).sort((a, b) => Math.abs(impacts[b]) - Math.abs(impacts[a]));
+            
+            for (const param of sortedParams) {
+                if (inputValues[param] !== 0 && inputValues[param] !== '') {
+                    const row = document.createElement('tr');
+                    
+                    // Parameter name
+                    const nameCell = document.createElement('td');
+                    nameCell.className = 'px-6 py-2 whitespace-nowrap text-sm text-gray-900';
+                    nameCell.textContent = param;
+                    row.appendChild(nameCell);
+                    
+                    // Input value
+                    const valueCell = document.createElement('td');
+                    valueCell.className = 'px-6 py-2 whitespace-nowrap text-sm text-gray-500';
+                    valueCell.textContent = inputValues[param];
+                    row.appendChild(valueCell);
+                    
+                    // Coefficient
+                    const coeffCell = document.createElement('td');
+                    coeffCell.className = 'px-6 py-2 whitespace-nowrap text-sm text-gray-500';
+                    coeffCell.textContent = coefficients[param].toFixed(6);
+                    row.appendChild(coeffCell);
+                    
+                    // Impact (colored based on positive/negative)
+                    const impactCell = document.createElement('td');
+                    impactCell.className = 'px-6 py-2 whitespace-nowrap text-sm';
+                    const impactValue = impacts[param];
+                    const impactPercent = impactToPercentage(impactValue, probability);
+                    impactCell.textContent = impactPercent >= 0 ? `+${impactPercent.toFixed(2)}%` : `${impactPercent.toFixed(2)}%`;
+                    impactCell.className += impactValue >= 0 ? ' text-green-600' : ' text-red-600';
+                    row.appendChild(impactCell);
+                    
+                    detailsTable.appendChild(row);
+                }
+            }
+            
+            // Show result box with animation
+            const resultBox = document.getElementById('result-box');
+            resultBox.classList.add('show');
+            
+            // Scroll to results
+            resultBox.scrollIntoView({ behavior: 'smooth' });
+            
+            // Show toast notification
+            showToast('Расчет вероятности завершен успешно', 'success');
+        });
+        
+        // Helper function to update impact bar visualization
+        function updateImpactBar(barId, impact, maxImpact) {
+            const bar = document.getElementById(barId);
+            let percentage = Math.abs(impact / maxImpact) * 100;
+            if (percentage > 100) percentage = 100;
+            
+            // Set width and color based on impact direction
+            bar.style.width = percentage + '%';
+            bar.className = impact >= 0 ? 
+                'bg-green-500 h-2 rounded-full' : 
+                'bg-red-500 h-2 rounded-full';
+        }
+        
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 
+                'bg-blue-500'
+            }`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
